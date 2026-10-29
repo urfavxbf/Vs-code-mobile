@@ -1,6 +1,6 @@
 # VS Code Mobile — GitHub Codespaces on Android
 
-[![Android CI](https://github.com/r987r/Vs-code-mobile/actions/workflows/android-build.yml/badge.svg)](https://github.com/r987r/Vs-code-mobile/actions/workflows/android-build.yml)
+[![Android CI](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml/badge.svg)](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml)
 
 A native Android app that opens your GitHub Codespaces in a mobile-optimised view,
 with a VS Code-style left Activity Bar for quick panel switching, a toggleable
@@ -31,7 +31,7 @@ The Android CI workflow starts automatically within seconds.
 
 **Step 2 — Wait for the build to finish (~5 min)**
 Watch the green checkmark appear on the
-[Actions tab](https://github.com/r987r/Vs-code-mobile/actions/workflows/android-build.yml).
+[Actions tab](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml).
 All checks must pass: Secret Scan → Lint → Tests → Build → ✅
 
 **Step 3 — Download the APK**
@@ -63,7 +63,7 @@ sha256sum -c app-debug.apk.sha256
 ### Tagged releases (optional)
 
 Push a Git tag to automatically create a
-[GitHub Release](https://github.com/r987r/Vs-code-mobile/releases)
+[GitHub Release](https://github.com/urfavxbf/Vs-code-mobile/releases)
 with the APK and its checksum attached as release assets:
 ```bash
 git tag v1.0.0 && git push --tags
