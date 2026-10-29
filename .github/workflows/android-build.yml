@@ -81,10 +81,34 @@ jobs:
       pull-requests: write
 
     steps:
+      # Newly created forks may not have Dependency Graph enabled.
+      # Automatically re-enable the vulnerability gate when it becomes available.
+      - name: Check Dependency Graph availability
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --retry 2 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/dependency-graph/sbom")
+          if [ "$STATUS" = "200" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          elif [ "$STATUS" = "403" ] || [ "$STATUS" = "404" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Dependency Graph unavailable (HTTP $STATUS). Dependency vulnerability review was NOT run. Enable Dependency Graph in repository Settings > Security."
+          else
+            echo "::error::Dependency Graph preflight failed with HTTP $STATUS."
+            exit 1
+          fi
+
       - name: Checkout source
+        if: steps.graph.outputs.available == 'true'
         uses: actions/checkout@v4
 
       - name: Dependency Review
+        if: steps.graph.outputs.available == 'true'
         uses: actions/dependency-review-action@v4.6.0
         with:
           fail-on-severity: high
