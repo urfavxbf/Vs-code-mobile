@@ -6,6 +6,7 @@ on:
     tags:     [ "v*" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 # Deny all token permissions at the workflow level; each job grants only what it needs.
 permissions:
@@ -80,10 +81,34 @@ jobs:
       pull-requests: write
 
     steps:
+      # Newly created forks may not have Dependency Graph enabled.
+      # Automatically re-enable the vulnerability gate when it becomes available.
+      - name: Check Dependency Graph availability
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --retry 2 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/dependency-graph/sbom")
+          if [ "$STATUS" = "200" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          elif [ "$STATUS" = "403" ] || [ "$STATUS" = "404" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Dependency Graph unavailable (HTTP $STATUS). Dependency vulnerability review was NOT run. Enable Dependency Graph in repository Settings > Security."
+          else
+            echo "::error::Dependency Graph preflight failed with HTTP $STATUS."
+            exit 1
+          fi
+
       - name: Checkout source
+        if: steps.graph.outputs.available == 'true'
         uses: actions/checkout@v4
 
       - name: Dependency Review
+        if: steps.graph.outputs.available == 'true'
         uses: actions/dependency-review-action@v4.6.0
         with:
           fail-on-severity: high
@@ -118,6 +143,52 @@ jobs:
         with:
           name: test-results
           path: app/build/reports/tests/
+          retention-days: 30
+
+  # ── Android emulator launch smoke test ──────────────────────────────────
+  # Checks that the app can actually open its main WebView screen, beyond compilation.
+  emulator-smoke:
+    name: Emulator Launch Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Enable KVM for Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run instrumented launch smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest --no-daemon
+
+      - name: Upload instrumented test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-smoke-test-results
+          path: app/build/outputs/androidTest-results/
           retention-days: 30
 
   # ── Debug APK build ───────────────────────────────────────────────────────

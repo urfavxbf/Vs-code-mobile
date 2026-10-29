@@ -3,7 +3,6 @@ package com.vscode.mobile
 import com.vscode.mobile.model.CodespacePanel
 import com.vscode.mobile.model.ViewMode
 import com.vscode.mobile.webview.JavaScriptInjector
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -28,10 +27,27 @@ class JavaScriptInjectorTest {
     }
 
     @Test
-    fun `desktop bootstrap has no activity bar override`() {
+    fun `desktop bootstrap does not apply mobile overrides initially`() {
         val script = JavaScriptInjector.buildMobileBootstrap(ViewMode.DESKTOP)
-        // In desktop mode, mobileCss is empty, so there should be no activitybar rule
-        assertFalse("Desktop mode should not have activitybar positioning", script.contains("left: -9999px"))
+        assertTrue("Desktop mode should inject an empty stylesheet initially",
+            script.contains("MODE === 'DESKTOP' ? '' : MOBILE_CSS"))
+    }
+
+    @Test
+    fun `desktop bootstrap retains mobile CSS for switching back`() {
+        val script = JavaScriptInjector.buildMobileBootstrap(ViewMode.DESKTOP)
+        assertTrue("Desktop mode must retain mobile rules", script.contains("left: -9999px"))
+        assertTrue("Mobile rules must be saved on the stylesheet",
+            script.contains("s.setAttribute('data-mobile-css', MOBILE_CSS)"))
+        assertTrue("View toggle must restore the saved stylesheet",
+            script.contains("s.getAttribute('data-mobile-css')"))
+    }
+
+    @Test
+    fun `view mode diagnostics report the current mode`() {
+        val script = JavaScriptInjector.buildMobileBootstrap(ViewMode.MOBILE)
+        assertTrue(script.contains("currentMode = mode"))
+        assertTrue(script.contains("mode: currentMode"))
     }
 
     @Test

@@ -1,6 +1,6 @@
 # VS Code Mobile — GitHub Codespaces on Android
 
-[![Android CI](https://github.com/r987r/Vs-code-mobile/actions/workflows/android-build.yml/badge.svg)](https://github.com/r987r/Vs-code-mobile/actions/workflows/android-build.yml)
+[![Android CI](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml/badge.svg)](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml)
 
 A native Android app that opens your GitHub Codespaces in a mobile-optimised view,
 with a VS Code-style left Activity Bar for quick panel switching, a toggleable
@@ -31,7 +31,7 @@ The Android CI workflow starts automatically within seconds.
 
 **Step 2 — Wait for the build to finish (~5 min)**
 Watch the green checkmark appear on the
-[Actions tab](https://github.com/r987r/Vs-code-mobile/actions/workflows/android-build.yml).
+[Actions tab](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml).
 All checks must pass: Secret Scan → Lint → Tests → Build → ✅
 
 **Step 3 — Download the APK**
@@ -63,7 +63,7 @@ sha256sum -c app-debug.apk.sha256
 ### Tagged releases (optional)
 
 Push a Git tag to automatically create a
-[GitHub Release](https://github.com/r987r/Vs-code-mobile/releases)
+[GitHub Release](https://github.com/urfavxbf/Vs-code-mobile/releases)
 with the APK and its checksum attached as release assets:
 ```bash
 git tag v1.0.0 && git push --tags
@@ -94,7 +94,7 @@ if every check passes:
 | 🖥️ Desktop mode toggle | Switch between mobile-optimised and full desktop layout on the fly |
 | 🔄 Toggle FAB | Quickly switch between codespace list and active codespace |
 | 📂 Left Activity Bar | Explorer · Search · Source Control · Extensions · Copilot · Terminal |
-| 🔒 Strict security | Certificate pinning, HTTPS-only, allowlisted domains, no SSL bypasses |
+| 🔒 Strict security | HTTPS-only, Android platform certificate validation, allowlisted navigation, no SSL bypasses |
 | 🚫 No data leaks | Backups disabled, third-party cookies blocked, no cleartext traffic |
 
 ---
@@ -127,10 +127,31 @@ app/src/main/java/com/vscode/mobile/
 3. **Domain allowlist** — `CodespacesWebViewClient` only permits navigation to `github.com`, `github.dev`, `app.github.dev`, and `githubpreview.dev`. Anything else is opened in the system browser.
 4. **SSL errors blocked** — `onReceivedSslError` always calls `handler.cancel()`, never `handler.proceed()`.
 5. **No cleartext traffic** — `android:usesCleartextTraffic="false"` and `network_security_config.xml` enforces HTTPS everywhere.
-6. **Certificate pinning** — `network_security_config.xml` pins DigiCert roots for `github.com` / `api.github.com`.
+6. **Platform certificate validation** — `network_security_config.xml` uses Android's up-to-date system trust store. Expired static certificate pins were removed; certificate pinning is not currently enabled.
 7. **No backups** — `data_extraction_rules.xml` and `backup_rules.xml` exclude all app data from cloud/device backups.
 8. **Third-party cookies blocked** — `CookieManager.setAcceptThirdPartyCookies(webView, false)`.
 9. **Remote debugging disabled in release** — `WebView.setWebContentsDebuggingEnabled(true)` only in debug builds.
+
+---
+
+## Verifying the fork on Android
+
+The `Android CI` workflow also includes a real Android emulator launch smoke test
+in addition to static checks, unit tests, and compiling the debug APK.
+The emulator test checks that `MainActivity` opens and its WebView is visible.
+It does **not** confirm that GitHub authentication or a live Codespace works.
+
+To test a fresh APK from this fork:
+
+1. Open [GitHub Actions](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml).
+2. Choose a successful `Android CI` run on this fork.
+3. Download the `VSCodeMobile-debug` artifact and extract `app-debug.apk`.
+4. Install the APK on Android 8.0 or newer.
+5. Confirm that GitHub sign-in, Codespaces listing, opening a live Codespace,
+   switching panels, the terminal, and Mobile → Desktop → Mobile all work.
+
+**Do not enter passwords into an untrusted APK.** Review the repository source
+and verify the artifact originates from your own GitHub Actions run before signing in.
 
 ---
 

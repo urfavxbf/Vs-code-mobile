@@ -19,11 +19,9 @@ object JavaScriptInjector {
      * Includes mobile-layout overrides and exposes the VSCMobile bridge.
      */
     fun buildMobileBootstrap(viewMode: ViewMode): String {
-        val mobileCssLiteral = if (viewMode == ViewMode.MOBILE) {
-            buildMobileCss()
-        } else {
-            ""
-        }
+        // Always retain mobile rules, including when the page starts in desktop mode.
+        // This lets the user toggle back to mobile without reloading the Codespace.
+        val mobileCssLiteral = escapeCssForJs(buildMobileCss())
 
         return """
         (function() {
@@ -34,6 +32,8 @@ object JavaScriptInjector {
             window.__vscMobileInjected = true;
 
             const MODE = '${viewMode.name}';
+            const MOBILE_CSS = ${mobileCssLiteral};
+            let currentMode = MODE;
 
             // ─── Utility ───────────────────────────────────────────────
             function injectCss(id, css) {
@@ -41,12 +41,13 @@ object JavaScriptInjector {
                 if (existing) existing.remove();
                 var s = document.createElement('style');
                 s.id = id;
+                s.setAttribute('data-mobile-css', MOBILE_CSS);
                 s.textContent = css;
                 document.head.appendChild(s);
             }
 
             // ─── Mobile CSS overrides ───────────────────────────────────
-            injectCss('vsc-mobile-overrides', ${escapeCssForJs(mobileCssLiteral)});
+            injectCss('vsc-mobile-overrides', MODE === 'DESKTOP' ? '' : MOBILE_CSS);
 
             // ─── VSCMobile bridge (called from Kotlin via evaluateJavascript) ──
             window.VSCMobile = {
@@ -67,8 +68,12 @@ object JavaScriptInjector {
                  * @param {string} mode 'MOBILE' | 'DESKTOP'
                  */
                 setViewMode: function(mode) {
+                    if (mode !== 'DESKTOP' && mode !== 'MOBILE') return;
                     var s = document.getElementById('vsc-mobile-overrides');
-                    if (s) s.textContent = (mode === 'DESKTOP') ? '' : s.getAttribute('data-mobile-css') || '';
+                    if (s) {
+                        s.textContent = (mode === 'DESKTOP') ? '' : (s.getAttribute('data-mobile-css') || '');
+                        currentMode = mode;
+                    }
                 },
 
                 /**
@@ -78,7 +83,7 @@ object JavaScriptInjector {
                     return JSON.stringify({
                         title: document.title,
                         url: window.location.href,
-                        mode: MODE
+                        mode: currentMode
                     });
                 }
             };
