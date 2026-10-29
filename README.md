@@ -134,6 +134,27 @@ app/src/main/java/com/vscode/mobile/
 
 ---
 
+## Verifying the fork on Android
+
+The `Android CI` workflow also includes a real Android emulator launch smoke test
+in addition to static checks, unit tests, and compiling the debug APK.
+The emulator test checks that `MainActivity` opens and its WebView is visible.
+It does **not** confirm that GitHub authentication or a live Codespace works.
+
+To test a fresh APK from this fork:
+
+1. Open [GitHub Actions](https://github.com/urfavxbf/Vs-code-mobile/actions/workflows/android-build.yml).
+2. Choose a successful `Android CI` run on this fork.
+3. Download the `VSCodeMobile-debug` artifact and extract `app-debug.apk`.
+4. Install the APK on Android 8.0 or newer.
+5. Confirm that GitHub sign-in, Codespaces listing, opening a live Codespace,
+   switching panels, the terminal, and Mobile → Desktop → Mobile all work.
+
+**Do not enter passwords into an untrusted APK.** Review the repository source
+and verify the artifact originates from your own GitHub Actions run before signing in.
+
+---
+
 ## Building
 
 ### Prerequisites
