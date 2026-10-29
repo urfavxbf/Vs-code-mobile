@@ -94,7 +94,7 @@ if every check passes:
 | 🖥️ Desktop mode toggle | Switch between mobile-optimised and full desktop layout on the fly |
 | 🔄 Toggle FAB | Quickly switch between codespace list and active codespace |
 | 📂 Left Activity Bar | Explorer · Search · Source Control · Extensions · Copilot · Terminal |
-| 🔒 Strict security | Certificate pinning, HTTPS-only, allowlisted domains, no SSL bypasses |
+| 🔒 Strict security | HTTPS-only, Android platform certificate validation, allowlisted navigation, no SSL bypasses |
 | 🚫 No data leaks | Backups disabled, third-party cookies blocked, no cleartext traffic |
 
 ---
@@ -127,7 +127,7 @@ app/src/main/java/com/vscode/mobile/
 3. **Domain allowlist** — `CodespacesWebViewClient` only permits navigation to `github.com`, `github.dev`, `app.github.dev`, and `githubpreview.dev`. Anything else is opened in the system browser.
 4. **SSL errors blocked** — `onReceivedSslError` always calls `handler.cancel()`, never `handler.proceed()`.
 5. **No cleartext traffic** — `android:usesCleartextTraffic="false"` and `network_security_config.xml` enforces HTTPS everywhere.
-6. **Certificate pinning** — `network_security_config.xml` pins DigiCert roots for `github.com` / `api.github.com`.
+6. **Platform certificate validation** — `network_security_config.xml` uses Android's up-to-date system trust store. Expired static certificate pins were removed; certificate pinning is not currently enabled.
 7. **No backups** — `data_extraction_rules.xml` and `backup_rules.xml` exclude all app data from cloud/device backups.
 8. **Third-party cookies blocked** — `CookieManager.setAcceptThirdPartyCookies(webView, false)`.
 9. **Remote debugging disabled in release** — `WebView.setWebContentsDebuggingEnabled(true)` only in debug builds.
