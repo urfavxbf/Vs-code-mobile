@@ -102,6 +102,63 @@
 
     </LinearLayout>
 
+    <!-- Full-width mobile workspace navigation; desktop keeps the left rail. -->
+    <HorizontalScrollView
+        android:id="@+id/mobileNavigationBar"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:background="@color/vscode_activity_bar_bg"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/statusBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/mobileTabRow"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <include
+                android:id="@+id/tabCodeMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+            <include
+                android:id="@+id/tabExplorerMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+            <include
+                android:id="@+id/tabSearchMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+            <include
+                android:id="@+id/tabGitMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+            <include
+                android:id="@+id/tabTerminalMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+            <include
+                android:id="@+id/tabCopilotMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+            <include
+                android:id="@+id/tabExtensionsMobile"
+                layout="@layout/item_activity_tab"
+                android:layout_width="56dp"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
     <!-- WebView displaying the Codespace panel content -->
     <WebView
         android:id="@+id/webView"
@@ -110,7 +167,7 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toEndOf="@id/activityBar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/statusBar" />
+        app:layout_constraintBottom_toTopOf="@id/mobileNavigationBar" />
 
     <!-- Loading overlay shown while WebView loads -->
     <FrameLayout
@@ -122,7 +179,7 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toEndOf="@id/activityBar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/statusBar">
+        app:layout_constraintBottom_toTopOf="@id/mobileNavigationBar">
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -146,7 +203,7 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toEndOf="@id/activityBar"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/statusBar">
+        app:layout_constraintBottom_toTopOf="@id/mobileNavigationBar">
 
         <TextView
             android:id="@+id/tvError"
